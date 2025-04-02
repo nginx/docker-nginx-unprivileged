@@ -6,7 +6,8 @@ Describe the use case and detail of the change. If this PR addresses an issue on
 
 Before creating a PR, run through this checklist and mark each as complete:
 
-- [ ] I have read the [`CONTRIBUTING`](https://github.com/nginxinc/docker-nginx-unprivileged/blob/main/CONTRIBUTING.md) document
-- [ ] I have run `./update.sh` and ensured all entrypoint/Dockerfile template changes have been applied to the relevant image entrypoint scripts & Dockerfiles
-- [ ] I have tested that the NGINX Unprivileged Docker images build and run correctly on all supported architectures on an unprivileged environment (check out the [`README`](https://github.com/nginxinc/docker-nginx-unprivileged/blob/main/README.md) for more details)
-- [ ] I have updated any relevant documentation ([`README`](https://github.com/nginxinc/docker-nginx-unprivileged/blob/main/README.md))
+- [ ] I have read the [contributing guidelines](/CONTRIBUTING.md)
+- [ ] I have signed the [F5 Contributor License Agreement (CLA)](https://github.com/f5/f5-cla/blob/main/docs/f5_cla.md)
+- [ ] I have run the [`update.sh`](/update.sh) script and ensured all entrypoint/Dockerfile template changes have been applied to the relevant image entrypoint scripts & Dockerfiles
+- [ ] I have tested that the NGINX Docker unprivileged image builds and runs correctly on all supported architectures on an unprivileged environment (check out the [`README`](/README.md) for more details)
+- [ ] I have updated any relevant documentation ([`README.md`](/README.md))

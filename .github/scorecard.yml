@@ -1,0 +1,7 @@
+---
+annotations:
+  - checks:
+      - fuzzing
+      - sast
+    reasons:
+      - reason: not-applicable

@@ -1,0 +1,35 @@
+---
+name: ⚠️ Security advisory
+description: Warn of a security advisory
+labels: security
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this security advisory!
+
+        Before you continue filling out this request, please take a moment to check that your advisory complies with the guidance in the [security documentation][security] and has not been [already reported on GitHub][issue search] 🙌
+
+        **Note:** If you are seeking community support or have a question, please consider starting a new thread via [GitHub discussions][discussions] or the [NGINX Community forum][forum].
+
+        [security]: https://github.com/nginx/docker-nginx-unprivileged/blob/main/SECURITY.md
+        [issue search]: ../search?q=is%3Aissue&type=issues
+
+        [discussions]: ../discussions
+        [forum]: https://community.nginx.org
+
+  - type: textarea
+    id: overview
+    attributes:
+      label: Security advisory overview
+      description: A clear and concise description of what the security advisory is.
+      placeholder: The NGINX Docker unprivileged image is vulnerable to CVE "X".
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here.
+      placeholder: Feel free to add any other context/information/screenshots/etc... that you think might be relevant to this security advisory here.

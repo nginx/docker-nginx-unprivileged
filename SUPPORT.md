@@ -4,25 +4,21 @@
 
 We use GitHub for tracking bugs and feature requests related to all the Docker NGINX images (including all variants and container registries).
 
-Don't know how something in this project works? Curious if this project can achieve your desired functionality? Please open an issue on GitHub with the label `question`.
+Don't know how something in this project works? Curious if this project can achieve your desired functionality? Please open an issue on GitHub with the label `question`. Alternatively, start a GitHub discussion!
 
 ## NGINX Specific Questions and/or Issues
 
 This isn't the right place to get support for NGINX specific questions, but the following resources are available below. Thanks for your understanding!
 
-### Community Slack
+### Community Forum
 
-We have a community [Slack](https://nginxcommunity.slack.com/)!
-
-If you are not a member, click [here](https://community.nginx.org/joinslack) to sign up (and let us know if the link does not seem to be working!)
-
-Once you join, check out the `#beginner-questions` and `nginx-users` channels :)
+We have a community [forum](https://community.nginx.org/)! If you have any questions and/or issues, try checking out the [`Troubleshooting`](https://community.nginx.org/c/troubleshooting/8) and [`How do I...?`](https://community.nginx.org/c/how-do-i/9) categories. Both fellow community members and NGINXers might be able to help you! :)
 
 ### Documentation
 
 For a comprehensive list of all NGINX directives, check out <https://nginx.org>.
 
-For a comprehensive list of admin and deployment guides for all NGINX products, check out <https://docs.nginx.com>.
+For a comprehensive list of administration and deployment guides for all NGINX products, check out <https://docs.nginx.com>.
 
 ### Mailing List
 
@@ -30,8 +26,12 @@ Want to get in touch with the NGINX development team directly? Try using the rel
 
 ## Contributing
 
-Please see the [contributing guide](https://github.com/nginxinc/docker-nginx-unprivileged/blob/main/CONTRIBUTING.md) for guidelines on how to best contribute to this project.
+Please see the [contributing guide](/CONTRIBUTING.md) for guidelines on how to best contribute to this project.
 
 ## Commercial Support
 
-Commercial support for this project may be available. Please get in touch with [NGINX sales](https://www.nginx.com/contact-sales/) or check your contract details for more info!
+Commercial support for this project may be available. Please get in touch with [NGINX sales](https://www.f5.com/products/get-f5/) or check your contract details for more info!
+
+## Community Support
+
+Community support is offered on a best effort basis through either GitHub issues/PRs/discussions or through any of our active communities.
