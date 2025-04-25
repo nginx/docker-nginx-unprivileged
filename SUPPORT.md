@@ -2,7 +2,7 @@
 
 ## Ask a Question
 
-We use GitHub for tracking bugs and feature requests related to all the Docker NGINX images (including all variants and container registries).
+We use GitHub for tracking bugs and feature requests related to all Docker NGINX unprivileged images (including all variants and container registries).
 
 Don't know how something in this project works? Curious if this project can achieve your desired functionality? Please open an issue on GitHub with the label `question`. Alternatively, start a GitHub discussion!
 
