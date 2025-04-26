@@ -11,7 +11,7 @@ This repo contains a series of Dockerfiles to create an NGINX Docker image that 
 
 - The default NGINX listen port is now `8080` instead of `80` (this is no longer necessary as of Docker `20.03` but it's still required in other container runtimes)
 - The default NGINX user directive in `/etc/nginx/nginx.conf` has been removed
-- The default NGINX PID has been moved from `/var/run/nginx.pid` to `/tmp/nginx.pid`
+- The default NGINX PID has been moved from `/var/run/nginx.pid` (prior to NGINX 1.27.5) and `/run/nginx.pid` (NGINX 1.27.5 and later) to `/tmp/nginx.pid`
 - Change `*_temp_path` variables to `/tmp/*`
 
 Check out the [docs](https://hub.docker.com/_/nginx) for the upstream Docker NGINX image for a detailed explanation on how to use this image.
@@ -51,7 +51,7 @@ Most images are built for the `amd64`, `arm32v5` (for Debian), `arm32v6` (for Al
   ```
 
 - If you override the default `nginx.conf` file you may encounter various types of error messages:
-  - To fix `nginx: [emerg] open() "/var/run/nginx.pid" failed (13: Permission denied)`, you have to specify a valid `pid` location by adding the line `pid /tmp/nginx.pid;` at the top level of your config.
+  - To fix `nginx: [emerg] open() "/var/run/nginx.pid" failed (13: Permission denied)`, you have to specify a valid `pid` location by adding the line `pid /tmp/nginx.pid;` at the top level of your config. NOTE: NGINX 1.27.5 will complain about permissions for `/run/nginx.pid` due to a policy change for this path.
   - To fix `nginx: [emerg] mkdir() "/var/cache/nginx/client_temp" failed (30: Read-only file system)`, you have to specify a valid location for the various NGINX temporary paths by adding these lines within the `http` context:
 
     ```nginx
