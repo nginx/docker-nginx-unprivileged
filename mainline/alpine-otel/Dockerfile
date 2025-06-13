@@ -6,12 +6,12 @@
 ARG IMAGE=nginxinc/nginx-unprivileged:1.27.5-alpine
 FROM $IMAGE
 
+ENV OTEL_VERSION=0.1.2
+
 ARG UID=101
 ARG GID=101
 
 USER root
-
-ENV OTEL_VERSION=0.1.2
 
 RUN set -x \
     && apkArch="$(cat /etc/apk/arch)" \

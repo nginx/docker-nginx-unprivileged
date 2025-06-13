@@ -1,12 +1,12 @@
 ARG IMAGE=nginxinc/nginx-unprivileged:%%NGINX_VERSION%%
 FROM $IMAGE
 
+ENV OTEL_VERSION=%%OTEL_VERSION%%
+
 ARG UID=101
 ARG GID=101
 
 USER root
-
-ENV OTEL_VERSION=%%OTEL_VERSION%%
 
 RUN set -x; \
     NGINX_GPGKEY_PATH=/etc/apt/keyrings/nginx-archive-keyring.gpg; \
