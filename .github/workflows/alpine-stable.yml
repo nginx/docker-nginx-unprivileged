@@ -28,7 +28,7 @@ jobs:
       - name: Parse Alpine version
         id: distro_version
         run: |
-          echo "release=$(cat update.sh | grep -m7 '\[stable\]=' | tail -n1 | cut -d"'" -f2)" >> "$GITHUB_OUTPUT"
+          echo "release=$(cat update.sh | grep -m8 '\[stable\]=' | tail -n1 | cut -d"'" -f2)" >> "$GITHUB_OUTPUT"
 
   slim:
     name: Build Alpine NGINX stable slim Docker image

@@ -28,7 +28,7 @@ jobs:
       - name: Parse Debian version
         id: distro_version
         run: |
-          echo "release=$(cat update.sh | grep -m6 '\[stable\]=' | tail -n1 | cut -d"'" -f2)" >> "$GITHUB_OUTPUT"
+          echo "release=$(cat update.sh | grep -m7 '\[stable\]=' | tail -n1 | cut -d"'" -f2)" >> "$GITHUB_OUTPUT"
 
   core:
     name: Build Debian NGINX stable Docker image
