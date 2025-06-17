@@ -6,6 +6,8 @@
 ARG IMAGE=nginxinc/nginx-unprivileged:1.28.0
 FROM $IMAGE
 
+ENV OTEL_VERSION=0.1.2
+
 ARG UID=101
 ARG GID=101
 
@@ -19,8 +21,8 @@ RUN set -x; \
         nginx-module-xslt=${NGINX_VERSION}-${DYNPKG_RELEASE} \
         nginx-module-geoip=${NGINX_VERSION}-${DYNPKG_RELEASE} \
         nginx-module-image-filter=${NGINX_VERSION}-${DYNPKG_RELEASE} \
-        nginx-module-perl=${NGINX_VERSION}-${DYNPKG_RELEASE} \
         nginx-module-njs=${NGINX_VERSION}+${NJS_VERSION}-${NJS_RELEASE} \
+        nginx-module-otel=${NGINX_VERSION}+${OTEL_VERSION}-${PKG_RELEASE} \
     " \
     && case "$dpkgArch" in \
         amd64|arm64) \
@@ -64,12 +66,12 @@ RUN set -x; \
                 && tar xzvf ${REVISION}.tar.gz \
                 && cd pkg-oss-${REVISION} \
                 && cd debian \
-                && for target in module-perl; do \
+                && for target in module-otel; do \
                     make rules-$target; \
                     mk-build-deps --install --tool="apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes" \
                         debuild-$target/nginx-$NGINX_VERSION/debian/control; \
                 done \
-                && make module-perl \
+                && make module-otel \
             ) \
 # we don't remove APT lists here because they get re-downloaded and removed later
             \

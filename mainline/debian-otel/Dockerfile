@@ -3,8 +3,10 @@
 #
 # PLEASE DO NOT EDIT IT DIRECTLY.
 #
-ARG IMAGE=nginxinc/nginx-unprivileged:1.28.0
+ARG IMAGE=nginxinc/nginx-unprivileged:1.27.5
 FROM $IMAGE
+
+ENV OTEL_VERSION=0.1.2
 
 ARG UID=101
 ARG GID=101
@@ -19,13 +21,13 @@ RUN set -x; \
         nginx-module-xslt=${NGINX_VERSION}-${DYNPKG_RELEASE} \
         nginx-module-geoip=${NGINX_VERSION}-${DYNPKG_RELEASE} \
         nginx-module-image-filter=${NGINX_VERSION}-${DYNPKG_RELEASE} \
-        nginx-module-perl=${NGINX_VERSION}-${DYNPKG_RELEASE} \
         nginx-module-njs=${NGINX_VERSION}+${NJS_VERSION}-${NJS_RELEASE} \
+        nginx-module-otel=${NGINX_VERSION}+${OTEL_VERSION}-${PKG_RELEASE} \
     " \
     && case "$dpkgArch" in \
         amd64|arm64) \
 # arches officially built by upstream
-            echo "deb [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/debian/ bookworm nginx" >> /etc/apt/sources.list.d/nginx.list \
+            echo "deb [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/mainline/debian/ bookworm nginx" >> /etc/apt/sources.list.d/nginx.list \
             && apt-get update \
             ;; \
         *) \
@@ -54,7 +56,7 @@ RUN set -x; \
                 && REVISION="${NGINX_VERSION}-${PKG_RELEASE}" \
                 && REVISION=${REVISION%~*} \
                 && curl -f -L -O https://github.com/nginx/pkg-oss/archive/${REVISION}.tar.gz \
-                && PKGOSSCHECKSUM="517bc18954ccf4efddd51986584ca1f37966833ad342a297e1fe58fd0faf14c5a4dabcb23519dca433878a2927a95d6bea05a6749ee2fa67a33bf24cdc41b1e4 *${REVISION}.tar.gz" \
+                && PKGOSSCHECKSUM="c773d98b567bd585c17f55702bf3e4c7d82b676bfbde395270e90a704dca3c758dfe0380b3f01770542b4fd9bed1f1149af4ce28bfc54a27a96df6b700ac1745 *${REVISION}.tar.gz" \
                 && if [ "$(openssl sha512 -r ${REVISION}.tar.gz)" = "$PKGOSSCHECKSUM" ]; then \
                     echo "pkg-oss tarball checksum verification succeeded!"; \
                 else \
@@ -64,12 +66,12 @@ RUN set -x; \
                 && tar xzvf ${REVISION}.tar.gz \
                 && cd pkg-oss-${REVISION} \
                 && cd debian \
-                && for target in module-perl; do \
+                && for target in module-otel; do \
                     make rules-$target; \
                     mk-build-deps --install --tool="apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes" \
                         debuild-$target/nginx-$NGINX_VERSION/debian/control; \
                 done \
-                && make module-perl \
+                && make module-otel \
             ) \
 # we don't remove APT lists here because they get re-downloaded and removed later
             \

@@ -28,7 +28,7 @@ jobs:
       - name: Parse Alpine version
         id: distro_version
         run: |
-          echo "release=$(cat update.sh | grep -m7 '\[stable\]=' | tail -n1 | cut -d"'" -f2)" >> "$GITHUB_OUTPUT"
+          echo "release=$(cat update.sh | grep -m8 '\[stable\]=' | tail -n1 | cut -d"'" -f2)" >> "$GITHUB_OUTPUT"
 
   slim:
     name: Build Alpine NGINX stable slim Docker image
@@ -354,6 +354,115 @@ jobs:
           notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
           notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged stable-alpine-perl $SIZE --sha256 $DIGEST --publish --verbose
           notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged stable-alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
+        env:
+          DOCKER_CONTENT_TRUST_REPOSITORY_KEY: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY }}
+          DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID }}
+          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
+          NOTARY_TARGETS_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
+  otel:
+    name: Build Alpine NGINX stable otel Docker image
+    needs: [version, core]
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Check out the codebase
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Configure AWS credentials
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Login to Amazon ECR Public Gallery
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: public.ecr.aws
+
+      - name: Login to Docker Hub
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Quay
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+
+      - name: Extract metadata (annotations, labels, tags) for Docker
+        id: meta
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        with:
+          images: |
+            docker.io/nginxinc/nginx-unprivileged
+            ghcr.io/nginx/nginx-unprivileged
+            public.ecr.aws/nginx/nginx-unprivileged
+            quay.io/nginx/nginx-unprivileged
+          tags: |
+            type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-otel
+            type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }}-otel
+            type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine-otel
+            type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine${{ needs.version.outputs.distro }}-otel
+            type=raw,value=stable-alpine-otel
+            type=raw,value=stable-alpine${{ needs.version.outputs.distro }}-otel
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
+
+      - name: Build and push NGINX stable otel Alpine image to Amazon ECR Public Gallery, Docker Hub, GitHub Container Registry, and Quay
+        id: build
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          platforms: linux/amd64, linux/arm64
+          context: "{{ defaultContext }}:stable/alpine-otel"
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          tags: ${{ steps.meta.outputs.tags }}
+          push: ${{ github.event_name != 'pull_request' }}
+          # cache-from: type=gha,scope=stable-alpine-otel
+          # cache-to: type=gha,mode=min,scope=stable-alpine-otel
+
+      - name: Sign Docker Hub Manifest
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          set -ex
+          sudo apt update
+          sudo apt install -y notary
+          mkdir -p ~/.docker/trust/private
+          echo "$DOCKER_CONTENT_TRUST_REPOSITORY_KEY" > ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
+          chmod 0400 ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
+          docker trust key load ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key --name nginx
+          DIGEST=$(printf '${{ steps.build.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
+          SIZE=$(printf '${{ steps.build.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
+          export NOTARY_AUTH=$(printf "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" | base64 -w0)
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged stable-alpine-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged stable-alpine${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
         env:
           DOCKER_CONTENT_TRUST_REPOSITORY_KEY: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY }}
           DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID }}
