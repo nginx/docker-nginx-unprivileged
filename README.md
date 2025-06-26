@@ -40,7 +40,7 @@ Untagged images on Amazon ECR and the GitHub Container Registry are cleaned up o
 
 ### Architectures
 
-Most images are built for the `amd64`, `arm32v5` (for Debian), `arm32v6` (for Alpine), `arm32v7`, `arm64v8`, `i386`, `mips64le` (for Debian), `ppc64le` and `s390x` architectures.
+Most images are built for the `amd64`, `arm32v5` (for Debian), `arm32v6` (for Alpine), `arm32v7`, `arm64`, `i386`, `mips64le` (for Debian), `ppc64le` and `s390x` architectures. OTel images are built for `amd64` and `arm64`.
 
 ## Troubleshooting Tips
 
