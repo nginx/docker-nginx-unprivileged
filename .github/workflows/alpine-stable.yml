@@ -113,8 +113,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=stable-alpine-slim
-          # cache-to: type=gha,mode=min,scope=stable-alpine-slim
+          cache-from: type=gha,scope=stable-alpine-slim
+          cache-to: type=gha,mode=min,scope=stable-alpine-slim
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -223,8 +223,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=stable-alpine
-          # cache-to: type=gha,mode=min,scope=stable-alpine
+          cache-from: type=gha,scope=stable-alpine
+          cache-to: type=gha,mode=min,scope=stable-alpine
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -333,8 +333,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=stable-alpine-perl
-          # cache-to: type=gha,mode=min,scope=stable-alpine-perl
+          cache-from: type=gha,scope=stable-alpine-perl
+          cache-to: type=gha,mode=min,scope=stable-alpine-perl
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -442,8 +442,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=stable-alpine-otel
-          # cache-to: type=gha,mode=min,scope=stable-alpine-otel
+          cache-from: type=gha,scope=stable-alpine-otel
+          cache-to: type=gha,mode=min,scope=stable-alpine-otel
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}

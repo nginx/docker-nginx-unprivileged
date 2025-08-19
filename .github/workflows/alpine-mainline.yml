@@ -117,8 +117,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=alpine-slim
-          # cache-to: type=gha,mode=min,scope=alpine-slim
+          cache-from: type=gha,scope=alpine-slim
+          cache-to: type=gha,mode=min,scope=alpine-slim
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -235,8 +235,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=debian-perl
-          # cache-to: type=gha,mode=min,scope=debian-perl
+          cache-from: type=gha,scope=alpine
+          cache-to: type=gha,mode=min,scope=alpine
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -353,8 +353,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=alpine-perl
-          # cache-to: type=gha,mode=min,scope=alpine-perl
+          cache-from: type=gha,scope=alpine-perl
+          cache-to: type=gha,mode=min,scope=alpine-perl
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -471,8 +471,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=alpine-otel
-          # cache-to: type=gha,mode=min,scope=alpine-otel
+          cache-from: type=gha,scope=alpine-otel
+          cache-to: type=gha,mode=min,scope=alpine-otel
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}

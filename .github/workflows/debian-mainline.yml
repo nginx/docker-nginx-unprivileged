@@ -118,8 +118,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=debian-perl
-          # cache-to: type=gha,mode=min,scope=debian-perl
+          cache-from: type=gha,scope=debian
+          cache-to: type=gha,mode=min,scope=debian
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -237,8 +237,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=debian-perl
-          # cache-to: type=gha,mode=min,scope=debian-perl
+          cache-from: type=gha,scope=debian-perl
+          cache-to: type=gha,mode=min,scope=debian-perl
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -355,8 +355,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=debian-otel
-          # cache-to: type=gha,mode=min,scope=debian-otel
+          cache-from: type=gha,scope=debian-otel
+          cache-to: type=gha,mode=min,scope=debian-otel
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}

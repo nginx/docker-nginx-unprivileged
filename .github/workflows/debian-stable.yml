@@ -114,8 +114,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=stable-debian
-          # cache-to: type=gha,mode=min,scope=stable-debian
+          cache-from: type=gha,scope=stable-debian
+          cache-to: type=gha,mode=min,scope=stable-debian
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -225,8 +225,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=stable-debian-perl
-          # cache-to: type=gha,mode=min,scope=stable-debian-perl
+          cache-from: type=gha,scope=stable-debian-perl
+          cache-to: type=gha,mode=min,scope=stable-debian-perl
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -335,8 +335,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
-          # cache-from: type=gha,scope=stable-debian-otel
-          # cache-to: type=gha,mode=min,scope=stable-debian-otel
+          cache-from: type=gha,scope=stable-debian-otel
+          cache-to: type=gha,mode=min,scope=stable-debian-otel
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
