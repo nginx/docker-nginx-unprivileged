@@ -37,11 +37,6 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
     steps:
       - name: Check out the codebase
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -94,10 +89,10 @@ jobs:
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
-            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || 'docker.io/nginxinc/nginx-unprivileged' }}
-            ${{ github.event_name != 'pull_request' && 'ghcr.io/nginx/nginx-unprivileged' || '' }}
-            ${{ github.event_name != 'pull_request' && 'public.ecr.aws/nginx/nginx-unprivileged' || '' }}
-            ${{ github.event_name != 'pull_request' && 'quay.io/nginx/nginx-unprivileged' || '' }}
+            docker.io/nginxinc/nginx-unprivileged
+            ghcr.io/nginx/nginx-unprivileged
+            public.ecr.aws/nginx/nginx-unprivileged
+            quay.io/nginx/nginx-unprivileged
           tags: |
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-${{ needs.version.outputs.distro }}
@@ -118,9 +113,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
-          push: true
-          cache-from: type=gha,scope=stable-debian
-          cache-to: type=gha,mode=min,scope=stable-debian
+          push: ${{ github.event_name != 'pull_request' }}
+          # cache-from: type=gha,scope=stable-debian
+          # cache-to: type=gha,mode=min,scope=stable-debian
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -153,11 +148,6 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
     steps:
       - name: Check out the codebase
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -210,10 +200,10 @@ jobs:
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
-            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || 'docker.io/nginxinc/nginx-unprivileged' }}
-            ${{ github.event_name != 'pull_request' && 'ghcr.io/nginx/nginx-unprivileged' || '' }}
-            ${{ github.event_name != 'pull_request' && 'public.ecr.aws/nginx/nginx-unprivileged' || '' }}
-            ${{ github.event_name != 'pull_request' && 'quay.io/nginx/nginx-unprivileged' || '' }}
+            docker.io/nginxinc/nginx-unprivileged
+            ghcr.io/nginx/nginx-unprivileged
+            public.ecr.aws/nginx/nginx-unprivileged
+            quay.io/nginx/nginx-unprivileged
           tags: |
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-perl
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-${{ needs.version.outputs.distro }}-perl
@@ -269,11 +259,6 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
     steps:
       - name: Check out the codebase
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -326,10 +311,10 @@ jobs:
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
-            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || 'docker.io/nginxinc/nginx-unprivileged' }}
-            ${{ github.event_name != 'pull_request' && 'ghcr.io/nginx/nginx-unprivileged' || '' }}
-            ${{ github.event_name != 'pull_request' && 'public.ecr.aws/nginx/nginx-unprivileged' || '' }}
-            ${{ github.event_name != 'pull_request' && 'quay.io/nginx/nginx-unprivileged' || '' }}
+            docker.io/nginxinc/nginx-unprivileged
+            ghcr.io/nginx/nginx-unprivileged
+            public.ecr.aws/nginx/nginx-unprivileged
+            quay.io/nginx/nginx-unprivileged
           tags: |
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-otel
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-${{ needs.version.outputs.distro }}-otel
