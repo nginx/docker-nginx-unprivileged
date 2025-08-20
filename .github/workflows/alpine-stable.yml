@@ -94,11 +94,10 @@ jobs:
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
-            docker.io/nginxinc/nginx-unprivileged
-            ghcr.io/nginx/nginx-unprivileged
-            public.ecr.aws/nginx/nginx-unprivileged
-            quay.io/nginx/nginx-unprivileged
-            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || '' }}
+            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || 'docker.io/nginxinc/nginx-unprivileged' }}
+            ${{ github.event_name != 'pull_request' && 'ghcr.io/nginx/nginx-unprivileged' || '' }}
+            ${{ github.event_name != 'pull_request' && 'public.ecr.aws/nginx/nginx-unprivileged' || '' }}
+            ${{ github.event_name != 'pull_request' && 'quay.io/nginx/nginx-unprivileged' || '' }}
           tags: |
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-slim
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }}-slim
@@ -118,9 +117,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
-          push: true
-          cache-from: type=gha,scope=stable-alpine-slim
-          cache-to: type=gha,mode=min,scope=stable-alpine-slim
+          push: ${{ github.event_name != 'pull_request' }}
+          # cache-from: type=gha,scope=stable-alpine-slim
+          # cache-to: type=gha,mode=min,scope=stable-alpine-slim
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -210,11 +209,10 @@ jobs:
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
-            docker.io/nginxinc/nginx-unprivileged
-            ghcr.io/nginx/nginx-unprivileged
-            public.ecr.aws/nginx/nginx-unprivileged
-            quay.io/nginx/nginx-unprivileged
-            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || '' }}
+            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || 'docker.io/nginxinc/nginx-unprivileged' }}
+            ${{ github.event_name != 'pull_request' && 'ghcr.io/nginx/nginx-unprivileged' || '' }}
+            ${{ github.event_name != 'pull_request' && 'public.ecr.aws/nginx/nginx-unprivileged' || '' }}
+            ${{ github.event_name != 'pull_request' && 'quay.io/nginx/nginx-unprivileged' || '' }}
           tags: |
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }}
@@ -237,7 +235,6 @@ jobs:
           push: true
           cache-from: type=gha,scope=stable-alpine
           cache-to: type=gha,mode=min,scope=stable-alpine
-          build-args: ${{ github.event_name == 'pull_request' && 'IMAGE=localhost:5000/nginx-unprivileged:stable-alpine-slim' || '' }}
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -327,11 +324,10 @@ jobs:
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
-            docker.io/nginxinc/nginx-unprivileged
-            ghcr.io/nginx/nginx-unprivileged
-            public.ecr.aws/nginx/nginx-unprivileged
-            quay.io/nginx/nginx-unprivileged
-            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || '' }}
+            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || 'docker.io/nginxinc/nginx-unprivileged' }}
+            ${{ github.event_name != 'pull_request' && 'ghcr.io/nginx/nginx-unprivileged' || '' }}
+            ${{ github.event_name != 'pull_request' && 'public.ecr.aws/nginx/nginx-unprivileged' || '' }}
+            ${{ github.event_name != 'pull_request' && 'quay.io/nginx/nginx-unprivileged' || '' }}
           tags: |
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-perl
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }}-perl
@@ -351,10 +347,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
-          push: true
-          cache-from: type=gha,scope=stable-alpine-perl
-          cache-to: type=gha,mode=min,scope=stable-alpine-perl
-          build-args: ${{ github.event_name == 'pull_request' && 'IMAGE=localhost:5000/nginx-unprivileged:stable-alpine' || '' }}
+          push: ${{ github.event_name != 'pull_request' }}
+          # cache-from: type=gha,scope=stable-alpine-perl
+          # cache-to: type=gha,mode=min,scope=stable-alpine-perl
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -443,11 +438,10 @@ jobs:
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
-            docker.io/nginxinc/nginx-unprivileged
-            ghcr.io/nginx/nginx-unprivileged
-            public.ecr.aws/nginx/nginx-unprivileged
-            quay.io/nginx/nginx-unprivileged
-            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || '' }}
+            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || 'docker.io/nginxinc/nginx-unprivileged' }}
+            ${{ github.event_name != 'pull_request' && 'ghcr.io/nginx/nginx-unprivileged' || '' }}
+            ${{ github.event_name != 'pull_request' && 'public.ecr.aws/nginx/nginx-unprivileged' || '' }}
+            ${{ github.event_name != 'pull_request' && 'quay.io/nginx/nginx-unprivileged' || '' }}
           tags: |
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-otel
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }}-otel
@@ -467,10 +461,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
-          push: true
-          cache-from: type=gha,scope=stable-alpine-otel
-          cache-to: type=gha,mode=min,scope=stable-alpine-otel
-          build-args: ${{ github.event_name == 'pull_request' && 'IMAGE=localhost:5000/nginx-unprivileged:stable-alpine' || '' }}
+          push: ${{ github.event_name != 'pull_request' }}
+          # cache-from: type=gha,scope=stable-alpine-otel
+          # cache-to: type=gha,mode=min,scope=stable-alpine-otel
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
