@@ -37,6 +37,11 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - name: Check out the codebase
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -93,6 +98,7 @@ jobs:
             ghcr.io/nginx/nginx-unprivileged
             public.ecr.aws/nginx/nginx-unprivileged
             quay.io/nginx/nginx-unprivileged
+            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || '' }}
           tags: |
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-${{ needs.version.outputs.distro }}
@@ -113,7 +119,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           cache-from: type=gha,scope=stable-debian
           cache-to: type=gha,mode=min,scope=stable-debian
 
@@ -148,6 +154,11 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - name: Check out the codebase
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -204,6 +215,7 @@ jobs:
             ghcr.io/nginx/nginx-unprivileged
             public.ecr.aws/nginx/nginx-unprivileged
             quay.io/nginx/nginx-unprivileged
+            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || '' }}
           tags: |
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-perl
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-${{ needs.version.outputs.distro }}-perl
@@ -224,9 +236,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           cache-from: type=gha,scope=stable-debian-perl
           cache-to: type=gha,mode=min,scope=stable-debian-perl
+          build-args: ${{ github.event_name == 'pull_request' && 'IMAGE=localhost:5000/nginx-unprivileged:stable' || '' }}
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -259,6 +272,11 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - name: Check out the codebase
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -315,6 +333,7 @@ jobs:
             ghcr.io/nginx/nginx-unprivileged
             public.ecr.aws/nginx/nginx-unprivileged
             quay.io/nginx/nginx-unprivileged
+            ${{ github.event_name == 'pull_request' && 'localhost:5000/nginx-unprivileged' || '' }}
           tags: |
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-otel
             type=raw,value=${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-${{ needs.version.outputs.distro }}-otel
@@ -334,9 +353,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           cache-from: type=gha,scope=stable-debian-otel
           cache-to: type=gha,mode=min,scope=stable-debian-otel
+          build-args: ${{ github.event_name == 'pull_request' && 'IMAGE=localhost:5000/nginx-unprivileged:stable' || '' }}
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
