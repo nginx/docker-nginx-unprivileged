@@ -65,7 +65,8 @@ jobs:
         id: build
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
-          platforms: linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/386, linux/ppc64le, linux/riscv64, linux/s390x
+          platforms: linux/amd64
+          # platforms: linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/386, linux/ppc64le, linux/riscv64, linux/s390x          context: "{{ defaultContext }}:mainline/alpine-slim"
           context: "{{ defaultContext }}:mainline/alpine-slim"
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -107,7 +108,8 @@ jobs:
         id: build
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
-          platforms: linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/386, linux/ppc64le, linux/riscv64, linux/s390x
+          platforms: linux/amd64
+          # platforms: linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/386, linux/ppc64le, linux/riscv64, linux/s390x
           context: "{{ defaultContext }}:mainline/alpine"
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -151,7 +153,8 @@ jobs:
         id: build
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
-          platforms: linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/386, linux/ppc64le, linux/riscv64, linux/s390x
+          platforms: linux/amd64
+          # platforms: linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/386, linux/ppc64le, linux/riscv64, linux/s390x          context: "{{ defaultContext }}:mainline/alpine-perl"
           context: "{{ defaultContext }}:mainline/alpine-perl"
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -195,7 +198,8 @@ jobs:
         id: build
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
+          # platforms: linux/amd64, linux/arm64
           context: "{{ defaultContext }}:mainline/alpine-otel"
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -408,7 +412,7 @@ jobs:
           chmod 0400 ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
           docker trust key load ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key --name nginx
           export NOTARY_AUTH=$(printf "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" | base64 -w0)
-          
+
           # Sign Alpine slim image
           DIGEST=$(printf '${{ steps.build-slim.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
           SIZE=$(printf '${{ steps.build-slim.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
@@ -422,7 +426,7 @@ jobs:
           notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine${{ needs.version.outputs.distro }}-slim $SIZE --sha256 $DIGEST --publish --verbose
           notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine-slim $SIZE --sha256 $DIGEST --publish --verbose
           notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine${{ needs.version.outputs.distro }}-slim $SIZE --sha256 $DIGEST --publish --verbose
-          
+
           # Sign Alpine core image
           DIGEST=$(printf '${{ steps.build-core.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
           SIZE=$(printf '${{ steps.build-core.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
@@ -436,7 +440,7 @@ jobs:
           notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
           notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine $SIZE --sha256 $DIGEST --publish --verbose
           notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
-          
+
           # Sign Alpine perl image
           DIGEST=$(printf '${{ steps.build-perl.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
           SIZE=$(printf '${{ steps.build-perl.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
@@ -450,7 +454,7 @@ jobs:
           notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
           notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine-perl $SIZE --sha256 $DIGEST --publish --verbose
           notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-          
+
           # Sign Alpine otel image
           DIGEST=$(printf '${{ steps.build-otel.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
           SIZE=$(printf '${{ steps.build-otel.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
