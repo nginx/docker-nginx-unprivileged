@@ -51,6 +51,8 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+        with:
+          driver-opts: network=host
 
       - name: Extract metadata (annotations, labels, tags) for Docker
         id: meta
@@ -94,6 +96,8 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+        with:
+          driver-opts: network=host
 
       - name: Extract metadata (annotations, labels, tags) for Docker
         id: meta
@@ -139,6 +143,8 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+        with:
+          driver-opts: network=host
 
       - name: Extract metadata (annotations, labels, tags) for Docker
         id: meta
@@ -184,6 +190,8 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+        with:
+          driver-opts: network=host
 
       - name: Extract metadata (annotations, labels, tags) for Docker
         id: meta
