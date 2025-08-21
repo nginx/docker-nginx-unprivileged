@@ -53,10 +53,9 @@ jobs:
         with:
           platforms: linux/amd64
           context: "{{ defaultContext }}:mainline/alpine-slim"
+          tags: nginx-unprivileged:alpine-slim
           push: false
           outputs: type=docker,dest=/tmp/alpine-slim.tar
-          # cache-from: type=gha,scope=alpine-slim
-          # cache-to: type=gha,mode=min,scope=alpine-slim
 
       - name: Upload Alpine slim image artifact
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
@@ -86,14 +85,6 @@ jobs:
           docker load --input /tmp/alpine-slim.tar
           docker image ls -a
 
-      - name: Generate slim image tag for builds
-        id: slim-tag
-        run: |
-          # Get the tag that was loaded from the artifact
-          SLIM_TAG=$(docker image ls --format "table {{.Repository}}:{{.Tag}}" | grep -v REPOSITORY | grep slim | head -1)
-          echo "tag=${SLIM_TAG}" >> "$GITHUB_OUTPUT"
-          echo "Using slim image: ${SLIM_TAG}"
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
 
@@ -106,11 +97,10 @@ jobs:
         with:
           platforms: linux/amd64
           context: "{{ defaultContext }}:mainline/alpine"
-          build-args: IMAGE=${{ steps.slim-tag.outputs.tag }}
+          tags: nginx-unprivileged:alpine
+          build-args: IMAGE=nginx-unprivileged:alpine-slim
           push: false
           outputs: type=docker,dest=/tmp/alpine.tar
-          # cache-from: type=gha,scope=debian-perl
-          # cache-to: type=gha,mode=min,scope=debian-perl
 
       - name: Upload Alpine image artifact
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
@@ -140,14 +130,6 @@ jobs:
           docker load --input /tmp/alpine.tar
           docker image ls -a
 
-      - name: Generate alpine image tag for builds
-        id: alpine-tag
-        run: |
-          # Get the tag that was loaded from the artifact (should be alpine, not alpine-slim)
-          ALPINE_TAG=$(docker image ls --format "table {{.Repository}}:{{.Tag}}" | grep -v REPOSITORY | grep -E "alpine$|alpine3" | head -1)
-          echo "tag=${ALPINE_TAG}" >> "$GITHUB_OUTPUT"
-          echo "Using alpine image: ${ALPINE_TAG}"
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
 
@@ -160,10 +142,9 @@ jobs:
         with:
           platforms: linux/amd64
           context: "{{ defaultContext }}:mainline/alpine-perl"
-          build-args: IMAGE=${{ steps.alpine-tag.outputs.tag }}
+          tags: nginx-unprivileged:alpine-perl
+          build-args: IMAGE=nginx-unprivileged:alpine
           push: false
-          # cache-from: type=gha,scope=alpine-perl
-          # cache-to: type=gha,mode=min,scope=alpine-perl
 
   otel:
     name: Build Alpine NGINX mainline otel Docker image
@@ -186,14 +167,6 @@ jobs:
           docker load --input /tmp/alpine.tar
           docker image ls -a
 
-      - name: Generate alpine image tag for builds
-        id: alpine-tag
-        run: |
-          # Get the tag that was loaded from the artifact (should be alpine, not alpine-slim)
-          ALPINE_TAG=$(docker image ls --format "table {{.Repository}}:{{.Tag}}" | grep -v REPOSITORY | grep -E "alpine$|alpine3" | head -1)
-          echo "tag=${ALPINE_TAG}" >> "$GITHUB_OUTPUT"
-          echo "Using alpine image: ${ALPINE_TAG}"
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
 
@@ -206,10 +179,9 @@ jobs:
         with:
           platforms: linux/amd64
           context: "{{ defaultContext }}:mainline/alpine-otel"
-          build-args: IMAGE=${{ steps.alpine-tag.outputs.tag }}
+          tags: nginx-unprivileged:alpine-otel
+          build-args: IMAGE=nginx-unprivileged:alpine
           push: false
-          # cache-from: type=gha,scope=alpine-otel
-          # cache-to: type=gha,mode=min,scope=alpine-otel
 
   publish:
     name: Publish Alpine NGINX mainline images to external registries
@@ -295,7 +267,7 @@ jobs:
           tags: ${{ steps.meta-slim.outputs.tags }}
           push: true
 
-      # Build and push core image
+      # Build and push core image (needs slim image reference)
       - name: Extract metadata for core image
         id: meta-core
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
@@ -325,6 +297,7 @@ jobs:
         with:
           platforms: linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/386, linux/ppc64le, linux/riscv64, linux/s390x
           context: "{{ defaultContext }}:mainline/alpine"
+          build-args: IMAGE=docker.io/nginxinc/nginx-unprivileged:${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-slim
           labels: ${{ steps.meta-core.outputs.labels }}
           annotations: ${{ steps.meta-core.outputs.annotations }}
           tags: ${{ steps.meta-core.outputs.tags }}
@@ -360,6 +333,7 @@ jobs:
         with:
           platforms: linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/386, linux/ppc64le, linux/riscv64, linux/s390x
           context: "{{ defaultContext }}:mainline/alpine-perl"
+          build-args: IMAGE=docker.io/nginxinc/nginx-unprivileged:${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine
           labels: ${{ steps.meta-perl.outputs.labels }}
           annotations: ${{ steps.meta-perl.outputs.annotations }}
           tags: ${{ steps.meta-perl.outputs.tags }}
@@ -395,102 +369,9 @@ jobs:
         with:
           platforms: linux/amd64, linux/arm64
           context: "{{ defaultContext }}:mainline/alpine-otel"
+          build-args: IMAGE=docker.io/nginxinc/nginx-unprivileged:${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine
           labels: ${{ steps.meta-otel.outputs.labels }}
           annotations: ${{ steps.meta-otel.outputs.annotations }}
           tags: ${{ steps.meta-otel.outputs.tags }}
           push: true
 
-      # Docker Hub signing for all images
-      - name: Sign Docker Hub Manifest for slim image
-        run: |
-          set -ex
-          sudo apt update
-          sudo apt install -y notary
-          mkdir -p ~/.docker/trust/private
-          echo "$DOCKER_CONTENT_TRUST_REPOSITORY_KEY" > ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
-          chmod 0400 ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
-          docker trust key load ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key --name nginx
-          DIGEST=$(printf '${{ steps.build-slim.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
-          SIZE=$(printf '${{ steps.build-slim.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
-          export NOTARY_AUTH=$(printf "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" | base64 -w0)
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-slim $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }}-slim $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine-slim $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine${{ needs.version.outputs.distro }}-slim $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine-slim $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine${{ needs.version.outputs.distro }}-slim $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine-slim $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine${{ needs.version.outputs.distro }}-slim $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine-slim $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine${{ needs.version.outputs.distro }}-slim $SIZE --sha256 $DIGEST --publish --verbose
-        env:
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
-          NOTARY_TARGETS_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
-
-      - name: Sign Docker Hub Manifest for core image
-        run: |
-          set -ex
-          DIGEST=$(printf '${{ steps.build-core.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
-          SIZE=$(printf '${{ steps.build-core.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
-          export NOTARY_AUTH=$(printf "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" | base64 -w0)
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
-        env:
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
-          NOTARY_TARGETS_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
-
-      - name: Sign Docker Hub Manifest for perl image
-        run: |
-          set -ex
-          DIGEST=$(printf '${{ steps.build-perl.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
-          SIZE=$(printf '${{ steps.build-perl.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
-          export NOTARY_AUTH=$(printf "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" | base64 -w0)
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-        env:
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
-          NOTARY_TARGETS_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
-
-      - name: Sign Docker Hub Manifest for otel image
-        run: |
-          set -ex
-          DIGEST=$(printf '${{ steps.build-otel.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
-          SIZE=$(printf '${{ steps.build-otel.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
-          export NOTARY_AUTH=$(printf "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" | base64 -w0)
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
-        env:
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
-          NOTARY_TARGETS_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
