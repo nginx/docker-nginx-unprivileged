@@ -94,9 +94,16 @@ jobs:
       - name: Load Alpine slim image
         run: |
           docker load --input /tmp/alpine-slim.tar
-          docker image ls -a
           docker tag nginx-unprivileged:alpine-slim localhost:5000/nginx-unprivileged:alpine-slim
+          docker image ls -a
+
+      - name: Push Alpine slim image
+        run: |
           docker push localhost:5000/nginx-unprivileged:alpine-slim
+
+      - name: Pull Alpine slim image
+        run: |
+          docker pull localhost:5000/nginx-unprivileged:alpine-slim
 
       - name: Build NGINX mainline Alpine image locally
         id: build
