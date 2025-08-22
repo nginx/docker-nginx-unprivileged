@@ -70,6 +70,11 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - name: Check out the codebase
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -90,6 +95,8 @@ jobs:
         run: |
           docker load --input /tmp/alpine-slim.tar
           docker image ls -a
+          docker tag nginx-unprivileged:alpine-slim localhost:5000/nginx-unprivileged:alpine-slim
+          docker push localhost:5000/nginx-unprivileged:alpine-slim
 
       - name: Build NGINX mainline Alpine image locally
         id: build
@@ -97,8 +104,8 @@ jobs:
         with:
           platforms: linux/amd64
           context: "{{ defaultContext }}:mainline/alpine"
-          tags: nginx-unprivileged:alpine
-          build-args: IMAGE=nginx-unprivileged:alpine-slim
+          tags: localhost:5000/nginx-unprivileged:alpine
+          build-args: IMAGE=localhost:5000/nginx-unprivileged:alpine-slim
           push: false
           outputs: type=docker,dest=/tmp/alpine.tar
 
