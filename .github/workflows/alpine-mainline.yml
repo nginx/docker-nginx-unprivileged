@@ -32,11 +32,15 @@ jobs:
           echo "release=$(cat update.sh | grep -m8 '\[mainline\]=' | tail -n1 | cut -d"'" -f2)" >> "$GITHUB_OUTPUT"
 
   slim:
-    name: Build Alpine NGINX mainline slim Docker image
+    name: Build Alpine NGINX mainline slim Docker image (${{ matrix.platform }})
     needs: version
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
     steps:
       - name: Check out the codebase
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -47,29 +51,39 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
 
-      - name: Build NGINX mainline slim Alpine image locally
+      - name: Generate platform-safe artifact name
+        id: platform_name
+        run: |
+          PLATFORM_SAFE=$(echo "${{ matrix.platform }}" | sed 's/\//-/g')
+          echo "name=$PLATFORM_SAFE" >> "$GITHUB_OUTPUT"
+
+      - name: Build NGINX mainline slim Alpine image for ${{ matrix.platform }}
         id: build
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
-          platforms: linux/amd64, linux/arm64
+          platforms: ${{ matrix.platform }}
           context: "{{ defaultContext }}:mainline/alpine-slim"
-          tags: nginx-unprivileged:alpine-slim
+          tags: nginx-unprivileged:alpine-slim-${{ steps.platform_name.outputs.name }}
           push: false
-          outputs: type=docker,dest=/tmp/alpine-slim.tar
+          outputs: type=docker,dest=/tmp/alpine-slim-${{ steps.platform_name.outputs.name }}.tar
 
-      - name: Upload Alpine slim image artifact
+      - name: Upload Alpine slim image artifact for ${{ matrix.platform }}
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
-          name: alpine-slim-image
-          path: /tmp/alpine-slim.tar
+          name: alpine-slim-image-${{ steps.platform_name.outputs.name }}
+          path: /tmp/alpine-slim-${{ steps.platform_name.outputs.name }}.tar
           retention-days: 1
 
   core:
-    name: Build Alpine NGINX mainline Docker image
+    name: Build Alpine NGINX mainline Docker image (${{ matrix.platform }})
     needs: [version, slim]
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
     services:
       registry:
         image: registry:2
@@ -87,125 +101,64 @@ jobs:
         with:
           driver-opts: network=host
 
-      - name: Download Alpine slim image artifact
+      - name: Generate platform-safe artifact name
+        id: platform_name
+        run: |
+          PLATFORM_SAFE=$(echo "${{ matrix.platform }}" | sed 's/\//-/g')
+          echo "name=$PLATFORM_SAFE" >> "$GITHUB_OUTPUT"
+
+      - name: Download all Alpine slim image artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
-          name: alpine-slim-image
-          path: /tmp
+          pattern: alpine-slim-image-*
+          path: /tmp/slim-images
 
-      - name: Load Alpine slim image
+      - name: Load all slim images and push to local registry
         run: |
-          docker load --input /tmp/alpine-slim.tar
-          docker tag nginx-unprivileged:alpine-slim localhost:5000/nginx-unprivileged:alpine-slim
+          echo "Loading all slim image tars..."
+          for tarfile in /tmp/slim-images/alpine-slim-image-*/alpine-slim-*.tar; do
+            echo "Loading $tarfile"
+            docker load --input "$tarfile"
+          done
+          docker image ls -a
+          
+          echo "Pushing all slim images to local registry..."
+          for img in $(docker images --format "{{.Repository}}:{{.Tag}}" | grep "nginx-unprivileged:alpine-slim"); do
+            echo "Tagging and pushing $img"
+            docker tag "$img" "localhost:5000/nginx-unprivileged:alpine-slim"
+            docker push "localhost:5000/nginx-unprivileged:alpine-slim"
+          done
+          
+          echo "Verifying images in local registry..."
           docker image ls -a
 
-      - name: Push Alpine slim image
-        run: |
-          docker push localhost:5000/nginx-unprivileged:alpine-slim
-
-      - name: Pull Alpine slim image
-        run: |
-          docker pull localhost:5000/nginx-unprivileged:alpine-slim
-
-      - name: Build NGINX mainline Alpine image locally
+      - name: Build NGINX mainline Alpine image for ${{ matrix.platform }}
         id: build
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
-          platforms: linux/amd64, linux/arm64
+          platforms: ${{ matrix.platform }}
           context: "{{ defaultContext }}:mainline/alpine"
-          tags: localhost:5000/nginx-unprivileged:alpine
           build-args: IMAGE=localhost:5000/nginx-unprivileged:alpine-slim
+          tags: nginx-unprivileged:alpine-${{ steps.platform_name.outputs.name }}
           push: false
-          outputs: type=docker,dest=/tmp/alpine.tar
+          outputs: type=docker,dest=/tmp/alpine-${{ steps.platform_name.outputs.name }}.tar
 
-      - name: Upload Alpine image artifact
+      - name: Upload Alpine image artifact for ${{ matrix.platform }}
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
-          name: alpine-image
-          path: /tmp/alpine.tar
+          name: alpine-image-${{ steps.platform_name.outputs.name }}
+          path: /tmp/alpine-${{ steps.platform_name.outputs.name }}.tar
           retention-days: 1
 
-  # perl:
-  #   name: Build Alpine NGINX mainline perl Docker image
-  #   needs: [version, core]
-  #   runs-on: ubuntu-24.04
-  #   strategy:
-  #     fail-fast: false
-  #   steps:
-  #     - name: Check out the codebase
-  #       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-
-  #     - name: Download Alpine image artifact
-  #       uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
-  #       with:
-  #         name: alpine-image
-  #         path: /tmp
-
-  #     - name: Load Alpine image
-  #       run: |
-  #         docker load --input /tmp/alpine.tar
-  #         docker image ls -a
-
-  #     - name: Set up QEMU
-  #       uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
-
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
-
-  #     - name: Build NGINX mainline perl Alpine image locally
-  #       id: build
-  #       uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
-  #       with:
-  #         platforms: linux/amd64
-  #         context: "{{ defaultContext }}:mainline/alpine-perl"
-  #         tags: nginx-unprivileged:alpine-perl
-  #         build-args: IMAGE=nginx-unprivileged:alpine
-  #         push: false
-
-  # otel:
-  #   name: Build Alpine NGINX mainline otel Docker image
-  #   needs: [version, core]
-  #   runs-on: ubuntu-24.04
-  #   strategy:
-  #     fail-fast: false
-  #   steps:
-  #     - name: Check out the codebase
-  #       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-
-  #     - name: Download Alpine image artifact
-  #       uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
-  #       with:
-  #         name: alpine-image
-  #         path: /tmp
-
-  #     - name: Load Alpine image
-  #       run: |
-  #         docker load --input /tmp/alpine.tar
-  #         docker image ls -a
-
-  #     - name: Set up QEMU
-  #       uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
-
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
-
-  #     - name: Build NGINX mainline otel Alpine image locally
-  #       id: build
-  #       uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
-  #       with:
-  #         platforms: linux/amd64
-  #         context: "{{ defaultContext }}:mainline/alpine-otel"
-  #         tags: nginx-unprivileged:alpine-otel
-  #         build-args: IMAGE=nginx-unprivileged:alpine
-  #         push: false
-
-  publish:
-    name: Publish Alpine NGINX mainline images to external registries
-    if: ${{ github.event_name != 'pull_request' }}
-    needs: [version, slim, core, perl, otel]
+  manifest:
+    name: Create and publish multiplatform manifests
+    needs: [version, slim, core]
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - name: Check out the codebase
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -215,8 +168,76 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+        with:
+          driver-opts: network=host
 
+      - name: Download all slim image artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          pattern: alpine-slim-image-*
+          path: /tmp/slim-images
+
+      - name: Download all core image artifacts  
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          pattern: alpine-image-*
+          path: /tmp/core-images
+
+      - name: Load and push slim images to local registry
+        run: |
+          echo "Loading slim image tars..."
+          for tarfile in /tmp/slim-images/alpine-slim-image-*/alpine-slim-*.tar; do
+            echo "Loading $tarfile"
+            docker load --input "$tarfile"
+          done
+          docker image ls -a
+          
+          echo "Pushing slim images to local registry..."
+          for img in $(docker images --format "{{.Repository}}:{{.Tag}}" | grep "nginx-unprivileged:alpine-slim"); do
+            echo "Tagging and pushing $img"
+            docker tag "$img" "localhost:5000/nginx-unprivileged:alpine-slim-$(echo $img | cut -d':' -f2 | cut -d'-' -f3-)"
+            docker push "localhost:5000/nginx-unprivileged:alpine-slim-$(echo $img | cut -d':' -f2 | cut -d'-' -f3-)"
+          done
+
+      - name: Create slim multiplatform manifest in local registry
+        run: |
+          echo "Creating multiplatform manifest for slim..."
+          SLIM_IMAGES=""
+          for img in $(docker images --format "{{.Repository}}:{{.Tag}}" | grep "localhost:5000/nginx-unprivileged:alpine-slim"); do
+            SLIM_IMAGES="$SLIM_IMAGES $img"
+          done
+          echo "Creating manifest from: $SLIM_IMAGES"
+          docker buildx imagetools create -t localhost:5000/nginx-unprivileged:alpine-slim $SLIM_IMAGES
+
+      - name: Load and push core images to local registry
+        run: |
+          echo "Loading core image tars..."
+          for tarfile in /tmp/core-images/alpine-image-*/alpine-*.tar; do
+            echo "Loading $tarfile"
+            docker load --input "$tarfile"
+          done
+          docker image ls -a
+          
+          echo "Pushing core images to local registry..."
+          for img in $(docker images --format "{{.Repository}}:{{.Tag}}" | grep "nginx-unprivileged:alpine-[^s]"); do
+            echo "Tagging and pushing $img"
+            docker tag "$img" "localhost:5000/nginx-unprivileged:alpine-$(echo $img | cut -d':' -f2 | cut -d'-' -f2-)"
+            docker push "localhost:5000/nginx-unprivileged:alpine-$(echo $img | cut -d':' -f2 | cut -d'-' -f2-)"
+          done
+
+      - name: Create core multiplatform manifest in local registry
+        run: |
+          echo "Creating multiplatform manifest for core..."
+          CORE_IMAGES=""
+          for img in $(docker images --format "{{.Repository}}:{{.Tag}}" | grep "localhost:5000/nginx-unprivileged:alpine-[^s]"); do
+            CORE_IMAGES="$CORE_IMAGES $img"
+          done
+          echo "Creating manifest from: $CORE_IMAGES"
+          docker buildx imagetools create -t localhost:5000/nginx-unprivileged:alpine $CORE_IMAGES
+
+      # Push to external registries for main branch
       - name: Configure AWS credentials
+        if: ${{ github.event_name != 'pull_request' }}
         uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
           aws-region: ${{ secrets.AWS_REGION }}
@@ -224,17 +245,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Login to Amazon ECR Public Gallery
+        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
           registry: public.ecr.aws
 
       - name: Login to Docker Hub
+        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
+        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
           registry: ghcr.io
@@ -242,14 +266,15 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to Quay
+        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
 
-      # Build and push slim image
       - name: Extract metadata for slim image
+        if: ${{ github.event_name != 'pull_request' }}
         id: meta-slim
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
@@ -269,22 +294,18 @@ jobs:
             type=raw,value=mainline-alpine${{ needs.version.outputs.distro }}-slim
             type=raw,value=alpine-slim
             type=raw,value=alpine${{ needs.version.outputs.distro }}-slim
-        env:
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
-      - name: Build and push NGINX mainline slim Alpine image
-        id: build-slim
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
-        with:
-          platforms: linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/386, linux/ppc64le, linux/riscv64, linux/s390x
-          context: "{{ defaultContext }}:mainline/alpine-slim"
-          labels: ${{ steps.meta-slim.outputs.labels }}
-          annotations: ${{ steps.meta-slim.outputs.annotations }}
-          tags: ${{ steps.meta-slim.outputs.tags }}
-          push: true
+      - name: Push slim manifest to external registries
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          TAGS="${{ steps.meta-slim.outputs.tags }}"
+          for tag in $TAGS; do
+            echo "Pushing manifest for $tag from local registry"
+            docker buildx imagetools create -t "$tag" localhost:5000/nginx-unprivileged:alpine-slim
+          done
 
-      # Build and push core image (needs slim image reference)
       - name: Extract metadata for core image
+        if: ${{ github.event_name != 'pull_request' }}
         id: meta-core
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
@@ -304,24 +325,147 @@ jobs:
             type=raw,value=mainline-alpine${{ needs.version.outputs.distro }}
             type=raw,value=alpine
             type=raw,value=alpine${{ needs.version.outputs.distro }}
+
+      - name: Push core manifest to external registries
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          TAGS="${{ steps.meta-core.outputs.tags }}"
+          for tag in $TAGS; do
+            echo "Pushing manifest for $tag from local registry"
+            docker buildx imagetools create -t "$tag" localhost:5000/nginx-unprivileged:alpine
+          done
+
+      # Docker Hub signing for slim
+      - name: Sign Docker Hub Manifest for slim
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          set -ex
+          sudo apt update
+          sudo apt install -y notary
+          mkdir -p ~/.docker/trust/private
+          echo "$DOCKER_CONTENT_TRUST_REPOSITORY_KEY" > ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
+          chmod 0400 ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
+          docker trust key load ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key --name nginx
+          
+          # Get digest and size from Docker Hub
+          TOKEN=$(curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:nginxinc/nginx-unprivileged:pull" | jq -r .token)
+          DIGEST=$(curl -s -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+            "https://registry-1.docker.io/v2/nginxinc/nginx-unprivileged/manifests/${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-slim" \
+            | jq -r '.config.digest' | cut -d ':' -f2)
+          SIZE=$(curl -s -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+            "https://registry-1.docker.io/v2/nginxinc/nginx-unprivileged/manifests/${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-slim" \
+            | jq -r '.config.size')
+          
+          export NOTARY_AUTH=$(printf "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" | base64 -w0)
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-slim $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }}-slim $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine-slim $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine${{ needs.version.outputs.distro }}-slim $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine-slim $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine${{ needs.version.outputs.distro }}-slim $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine-slim $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine${{ needs.version.outputs.distro }}-slim $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine-slim $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine${{ needs.version.outputs.distro }}-slim $SIZE --sha256 $DIGEST --publish --verbose
         env:
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
+          DOCKER_CONTENT_TRUST_REPOSITORY_KEY: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY }}
+          DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID }}
+          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
+          NOTARY_TARGETS_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
 
-      - name: Build and push NGINX mainline Alpine image
-        id: build-core
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+      # Docker Hub signing for core
+      - name: Sign Docker Hub Manifest for core
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          set -ex
+          sudo apt update
+          sudo apt install -y notary
+          mkdir -p ~/.docker/trust/private
+          echo "$DOCKER_CONTENT_TRUST_REPOSITORY_KEY" > ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
+          chmod 0400 ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
+          docker trust key load ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key --name nginx
+          
+          # Get digest and size from Docker Hub
+          TOKEN=$(curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:nginxinc/nginx-unprivileged:pull" | jq -r .token)
+          DIGEST=$(curl -s -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+            "https://registry-1.docker.io/v2/nginxinc/nginx-unprivileged/manifests/${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine" \
+            | jq -r '.config.digest' | cut -d ':' -f2)
+          SIZE=$(curl -s -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+            "https://registry-1.docker.io/v2/nginxinc/nginx-unprivileged/manifests/${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine" \
+            | jq -r '.config.size')
+          
+          export NOTARY_AUTH=$(printf "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" | base64 -w0)
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
+        env:
+          DOCKER_CONTENT_TRUST_REPOSITORY_KEY: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY }}
+          DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID }}
+          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
+          NOTARY_TARGETS_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
+
+  perl:
+    name: Build Alpine NGINX mainline perl Docker image
+    needs: [version, core]
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Check out the codebase
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Configure AWS credentials
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
-          platforms: linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/386, linux/ppc64le, linux/riscv64, linux/s390x
-          context: "{{ defaultContext }}:mainline/alpine"
-          build-args: IMAGE=docker.io/nginxinc/nginx-unprivileged:${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-slim
-          labels: ${{ steps.meta-core.outputs.labels }}
-          annotations: ${{ steps.meta-core.outputs.annotations }}
-          tags: ${{ steps.meta-core.outputs.tags }}
-          push: true
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # Build and push perl image
-      - name: Extract metadata for perl image
-        id: meta-perl
+      - name: Login to Amazon ECR Public Gallery
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        with:
+          registry: public.ecr.aws
+
+      - name: Login to Docker Hub
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Quay
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+
+      - name: Extract metadata (annotations, labels, tags) for Docker
+        id: meta
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
@@ -343,21 +487,103 @@ jobs:
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
-      - name: Build and push NGINX mainline perl Alpine image
-        id: build-perl
+      - name: Build and push NGINX mainline perl Alpine image to Amazon ECR Public Gallery, Docker Hub, GitHub Container Registry, and Quay
+        id: build
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           platforms: linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/386, linux/ppc64le, linux/riscv64, linux/s390x
           context: "{{ defaultContext }}:mainline/alpine-perl"
-          build-args: IMAGE=docker.io/nginxinc/nginx-unprivileged:${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine
-          labels: ${{ steps.meta-perl.outputs.labels }}
-          annotations: ${{ steps.meta-perl.outputs.annotations }}
-          tags: ${{ steps.meta-perl.outputs.tags }}
-          push: true
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          tags: ${{ steps.meta.outputs.tags }}
+          push: ${{ github.event_name != 'pull_request' }}
+          # cache-from: type=gha,scope=alpine-perl
+          # cache-to: type=gha,mode=min,scope=alpine-perl
 
-      # Build and push otel image
-      - name: Extract metadata for otel image
-        id: meta-otel
+      - name: Sign Docker Hub Manifest
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          set -ex
+          sudo apt update
+          sudo apt install -y notary
+          mkdir -p ~/.docker/trust/private
+          echo "$DOCKER_CONTENT_TRUST_REPOSITORY_KEY" > ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
+          chmod 0400 ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
+          docker trust key load ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key --name nginx
+          DIGEST=$(printf '${{ steps.build.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
+          SIZE=$(printf '${{ steps.build.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
+          export NOTARY_AUTH=$(printf "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" | base64 -w0)
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-perl $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine-perl $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine-perl $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine-perl $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine-perl $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
+        env:
+          DOCKER_CONTENT_TRUST_REPOSITORY_KEY: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY }}
+          DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID }}
+          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
+          NOTARY_TARGETS_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
+
+  otel:
+    name: Build Alpine NGINX mainline otel Docker image
+    needs: [version, core]
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Check out the codebase
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Configure AWS credentials
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Login to Amazon ECR Public Gallery
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        with:
+          registry: public.ecr.aws
+
+      - name: Login to Docker Hub
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Quay
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+
+      - name: Extract metadata (annotations, labels, tags) for Docker
+        id: meta
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
@@ -379,15 +605,44 @@ jobs:
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
-      - name: Build and push NGINX mainline otel Alpine image
-        id: build-otel
+      - name: Build and push NGINX mainline otel Alpine image to Amazon ECR Public Gallery, Docker Hub, GitHub Container Registry, and Quay
+        id: build
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           platforms: linux/amd64, linux/arm64
           context: "{{ defaultContext }}:mainline/alpine-otel"
-          build-args: IMAGE=docker.io/nginxinc/nginx-unprivileged:${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine
-          labels: ${{ steps.meta-otel.outputs.labels }}
-          annotations: ${{ steps.meta-otel.outputs.annotations }}
-          tags: ${{ steps.meta-otel.outputs.tags }}
-          push: true
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          tags: ${{ steps.meta.outputs.tags }}
+          push: ${{ github.event_name != 'pull_request' }}
+          # cache-from: type=gha,scope=alpine-otel
+          # cache-to: type=gha,mode=min,scope=alpine-otel
 
+      - name: Sign Docker Hub Manifest
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          set -ex
+          sudo apt update
+          sudo apt install -y notary
+          mkdir -p ~/.docker/trust/private
+          echo "$DOCKER_CONTENT_TRUST_REPOSITORY_KEY" > ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
+          chmod 0400 ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
+          docker trust key load ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key --name nginx
+          DIGEST=$(printf '${{ steps.build.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
+          SIZE=$(printf '${{ steps.build.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
+          export NOTARY_AUTH=$(printf "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" | base64 -w0)
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-alpine${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-alpine${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-alpine${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-alpine${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine-otel $SIZE --sha256 $DIGEST --publish --verbose
+          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged alpine${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
+        env:
+          DOCKER_CONTENT_TRUST_REPOSITORY_KEY: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY }}
+          DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID }}
+          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
+          NOTARY_TARGETS_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
