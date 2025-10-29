@@ -107,14 +107,23 @@ jobs:
         id: build
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
-          platforms: linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/386, linux/ppc64le, linux/riscv64, linux/s390x
+          platforms: ${{ github.event_name == 'pull_request' && 'linux/amd64' || 'linux/amd64, linux/arm/v6, linux/arm/v7, linux/arm64, linux/386, linux/ppc64le, linux/riscv64, linux/s390x' }}
           context: "{{ defaultContext }}:stable/alpine-slim"
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           tags: ${{ steps.meta.outputs.tags }}
           push: ${{ github.event_name != 'pull_request' }}
+          outputs: ${{ github.event_name == 'pull_request' && 'type=docker,dest=/tmp/alpine-slim.tar' || '' }}
           # cache-from: type=gha,scope=stable-alpine-slim
           # cache-to: type=gha,mode=min,scope=stable-alpine-slim
+
+      - name: Upload Alpine slim image artifact
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: alpine-slim-image
+          path: /tmp/alpine-slim.tar
+          retention-days: 1
 
       - name: Sign Docker Hub Manifest
         if: ${{ github.event_name != 'pull_request' }}
@@ -150,6 +159,28 @@ jobs:
     steps:
       - name: Check out the codebase
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Download Alpine slim image artifact
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: alpine-slim-image
+          path: /tmp
+
+      - name: Load Alpine slim image
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          docker load --input /tmp/alpine-slim.tar
+          docker image ls -a
+
+      - name: Generate slim image tag for PR builds
+        if: ${{ github.event_name == 'pull_request' }}
+        id: slim-tag
+        run: |
+          # Get the tag that was loaded from the artifact
+          SLIM_TAG=$(docker image ls --format "table {{.Repository}}:{{.Tag}}" | grep -v REPOSITORY | grep slim | head -1)
+          echo "tag=${SLIM_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Using slim image: ${SLIM_TAG}"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
