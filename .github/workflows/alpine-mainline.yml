@@ -294,17 +294,14 @@ jobs:
             type=raw,value=mainline-alpine${{ needs.version.outputs.distro }}-slim
             type=raw,value=alpine-slim
             type=raw,value=alpine${{ needs.version.outputs.distro }}-slim
-        env:
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
       - name: Push slim manifest to external registries
         if: ${{ github.event_name != 'pull_request' }}
         run: |
           TAGS="${{ steps.meta-slim.outputs.tags }}"
-          ANNOTATIONS=$(echo '${{ steps.meta-slim.outputs.annotations }}' | jq -r 'to_entries | map("--annotation \"" + .key + "=" + .value + "\"") | join(" ")')
           for tag in $TAGS; do
-            echo "Pushing manifest for $tag from local registry with annotations"
-            eval "docker buildx imagetools create $ANNOTATIONS -t \"$tag\" localhost:5000/nginx-unprivileged:alpine-slim"
+            echo "Pushing manifest for $tag from local registry"
+            docker buildx imagetools create -t "$tag" localhost:5000/nginx-unprivileged:alpine-slim
           done
 
       - name: Extract metadata for core image
@@ -328,17 +325,14 @@ jobs:
             type=raw,value=mainline-alpine${{ needs.version.outputs.distro }}
             type=raw,value=alpine
             type=raw,value=alpine${{ needs.version.outputs.distro }}
-        env:
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
       - name: Push core manifest to external registries
         if: ${{ github.event_name != 'pull_request' }}
         run: |
           TAGS="${{ steps.meta-core.outputs.tags }}"
-          ANNOTATIONS=$(echo '${{ steps.meta-core.outputs.annotations }}' | jq -r 'to_entries | map("--annotation \"" + .key + "=" + .value + "\"") | join(" ")')
           for tag in $TAGS; do
-            echo "Pushing manifest for $tag from local registry with annotations"
-            eval "docker buildx imagetools create $ANNOTATIONS -t \"$tag\" localhost:5000/nginx-unprivileged:alpine"
+            echo "Pushing manifest for $tag from local registry"
+            docker buildx imagetools create -t "$tag" localhost:5000/nginx-unprivileged:alpine
           done
 
       # Docker Hub signing for slim
