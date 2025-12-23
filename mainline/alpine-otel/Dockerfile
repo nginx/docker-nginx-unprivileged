@@ -3,7 +3,7 @@
 #
 # PLEASE DO NOT EDIT IT DIRECTLY.
 #
-ARG IMAGE=nginxinc/nginx-unprivileged:1.29.3-alpine
+ARG IMAGE=nginxinc/nginx-unprivileged:1.29.4-alpine
 FROM $IMAGE
 
 ENV OTEL_VERSION=0.1.2
