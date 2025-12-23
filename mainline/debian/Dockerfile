@@ -8,7 +8,7 @@ FROM $IMAGE
 
 LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 
-ENV NGINX_VERSION=1.29.3
+ENV NGINX_VERSION=1.29.4
 ENV NJS_VERSION=0.9.4
 ENV NJS_RELEASE=1~trixie
 ENV PKG_RELEASE=1~trixie

@@ -3,7 +3,7 @@
 #
 # PLEASE DO NOT EDIT IT DIRECTLY.
 #
-ARG IMAGE=nginxinc/nginx-unprivileged:1.29.3-alpine-slim
+ARG IMAGE=nginxinc/nginx-unprivileged:1.29.4-alpine-slim
 FROM $IMAGE
 
 ENV NJS_VERSION=0.9.4
