@@ -52,8 +52,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ECR_PUBLIC_RW }}
+          role-duration-seconds: 14400
 
       - name: Login to Amazon ECR Public Gallery
         if: ${{ github.event_name != 'pull_request' }}
@@ -162,8 +162,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ECR_PUBLIC_RW }}
+          role-duration-seconds: 14400
 
       - name: Login to Amazon ECR Public Gallery
         if: ${{ github.event_name != 'pull_request' }}
@@ -272,8 +272,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ECR_PUBLIC_RW }}
+          role-duration-seconds: 14400
 
       - name: Login to Amazon ECR Public Gallery
         if: ${{ github.event_name != 'pull_request' }}
@@ -381,8 +381,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ECR_PUBLIC_RW }}
+          role-duration-seconds: 14400
 
       - name: Login to Amazon ECR Public Gallery
         if: ${{ github.event_name != 'pull_request' }}
