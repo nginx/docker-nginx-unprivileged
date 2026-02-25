@@ -14,6 +14,8 @@ ARG GID=101
 
 USER root
 
+RUN apk upgrade --no-cache
+
 RUN set -x \
     && apkArch="$(cat /etc/apk/arch)" \
     && nginxPackages=" \
