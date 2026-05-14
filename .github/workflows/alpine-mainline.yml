@@ -50,12 +50,22 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
+      - name: Get secrets from Azure
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: nginx/ci-self-hosted/.github/actions/get-from-vault@5c3e1f8b51f66a851fdba80f70e19cf966199730
+        with:
+          client-id: ${{ secrets.SYSENG_CLIENT_ID }}
+          tenant-id: ${{ secrets.SYSENG_TENANT_ID }}
+          vault-name: ${{ secrets.SYSENG_VAULT_NAME }}
+          secret-names: "github-docker-nginx-unprivileged-public-ecr-aws-region, github-docker-nginx-unprivileged-public-ecr-aws-role-rw, docker-username, docker-github-syseng-rw-token, quay-unprivileged-username, quay-unprivileged-token"
+          env-names: "AWS_REGION, AWS_ROLE_ECR_PUBLIC_RW, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, QUAY_USERNAME, QUAY_TOKEN"
+
       - name: Configure AWS credentials
         if: ${{ github.event_name != 'pull_request' }}
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
-          aws-region: ${{ secrets.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_ROLE_ECR_PUBLIC_RW }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_ECR_PUBLIC_RW }}
           role-duration-seconds: 14400
 
       - name: Login to Amazon ECR Public Gallery
@@ -68,8 +78,8 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
         if: ${{ github.event_name != 'pull_request' }}
@@ -84,8 +94,8 @@ jobs:
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
+          username: ${{ env.QUAY_USERNAME }}
+          password: ${{ env.QUAY_TOKEN }}
 
       - name: Extract metadata (annotations, labels, tags) for Docker
         id: meta
@@ -142,12 +152,22 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
+      - name: Get secrets from Azure
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: nginx/ci-self-hosted/.github/actions/get-from-vault@5c3e1f8b51f66a851fdba80f70e19cf966199730
+        with:
+          client-id: ${{ secrets.SYSENG_CLIENT_ID }}
+          tenant-id: ${{ secrets.SYSENG_TENANT_ID }}
+          vault-name: ${{ secrets.SYSENG_VAULT_NAME }}
+          secret-names: "github-docker-nginx-unprivileged-public-ecr-aws-region, github-docker-nginx-unprivileged-public-ecr-aws-role-rw, docker-username, docker-github-syseng-rw-token, quay-unprivileged-username, quay-unprivileged-token"
+          env-names: "AWS_REGION, AWS_ROLE_ECR_PUBLIC_RW, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, QUAY_USERNAME, QUAY_TOKEN"
+
       - name: Configure AWS credentials
         if: ${{ github.event_name != 'pull_request' }}
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
-          aws-region: ${{ secrets.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_ROLE_ECR_PUBLIC_RW }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_ECR_PUBLIC_RW }}
           role-duration-seconds: 14400
 
       - name: Login to Amazon ECR Public Gallery
@@ -160,8 +180,8 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
         if: ${{ github.event_name != 'pull_request' }}
@@ -176,8 +196,8 @@ jobs:
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
+          username: ${{ env.QUAY_USERNAME }}
+          password: ${{ env.QUAY_TOKEN }}
 
       - name: Extract metadata (annotations, labels, tags) for Docker
         id: meta
@@ -234,12 +254,22 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
+      - name: Get secrets from Azure
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: nginx/ci-self-hosted/.github/actions/get-from-vault@5c3e1f8b51f66a851fdba80f70e19cf966199730
+        with:
+          client-id: ${{ secrets.SYSENG_CLIENT_ID }}
+          tenant-id: ${{ secrets.SYSENG_TENANT_ID }}
+          vault-name: ${{ secrets.SYSENG_VAULT_NAME }}
+          secret-names: "github-docker-nginx-unprivileged-public-ecr-aws-region, github-docker-nginx-unprivileged-public-ecr-aws-role-rw, docker-username, docker-github-syseng-rw-token, quay-unprivileged-username, quay-unprivileged-token"
+          env-names: "AWS_REGION, AWS_ROLE_ECR_PUBLIC_RW, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, QUAY_USERNAME, QUAY_TOKEN"
+
       - name: Configure AWS credentials
         if: ${{ github.event_name != 'pull_request' }}
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
-          aws-region: ${{ secrets.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_ROLE_ECR_PUBLIC_RW }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_ECR_PUBLIC_RW }}
           role-duration-seconds: 14400
 
       - name: Login to Amazon ECR Public Gallery
@@ -252,8 +282,8 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
         if: ${{ github.event_name != 'pull_request' }}
@@ -268,8 +298,8 @@ jobs:
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
+          username: ${{ env.QUAY_USERNAME }}
+          password: ${{ env.QUAY_TOKEN }}
 
       - name: Extract metadata (annotations, labels, tags) for Docker
         id: meta
@@ -326,12 +356,22 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
+      - name: Get secrets from Azure
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: nginx/ci-self-hosted/.github/actions/get-from-vault@5c3e1f8b51f66a851fdba80f70e19cf966199730
+        with:
+          client-id: ${{ secrets.SYSENG_CLIENT_ID }}
+          tenant-id: ${{ secrets.SYSENG_TENANT_ID }}
+          vault-name: ${{ secrets.SYSENG_VAULT_NAME }}
+          secret-names: "github-docker-nginx-unprivileged-public-ecr-aws-region, github-docker-nginx-unprivileged-public-ecr-aws-role-rw, docker-username, docker-github-syseng-rw-token, quay-unprivileged-username, quay-unprivileged-token"
+          env-names: "AWS_REGION, AWS_ROLE_ECR_PUBLIC_RW, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, QUAY_USERNAME, QUAY_TOKEN"
+
       - name: Configure AWS credentials
         if: ${{ github.event_name != 'pull_request' }}
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
-          aws-region: ${{ secrets.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_ROLE_ECR_PUBLIC_RW }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_ECR_PUBLIC_RW }}
           role-duration-seconds: 14400
 
       - name: Login to Amazon ECR Public Gallery
@@ -344,8 +384,8 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
         if: ${{ github.event_name != 'pull_request' }}
@@ -360,8 +400,8 @@ jobs:
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
+          username: ${{ env.QUAY_USERNAME }}
+          password: ${{ env.QUAY_TOKEN }}
 
       - name: Extract metadata (annotations, labels, tags) for Docker
         id: meta
