@@ -124,35 +124,6 @@ jobs:
           # cache-from: type=gha,scope=debian-perl
           # cache-to: type=gha,mode=min,scope=debian-perl
 
-      - name: Sign Docker Hub Manifest
-        if: ${{ github.event_name != 'pull_request' }}
-        run: |
-          set -ex
-          sudo apt update
-          sudo apt install -y notary
-          mkdir -p ~/.docker/trust/private
-          echo "$DOCKER_CONTENT_TRUST_REPOSITORY_KEY" > ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
-          chmod 0400 ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
-          docker trust key load ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key --name nginx
-          DIGEST=$(printf '${{ steps.build.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
-          SIZE=$(printf '${{ steps.build.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
-          export NOTARY_AUTH=$(printf "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" | base64 -w0)
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }} $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }} $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }} $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged latest $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.distro }} $SIZE --sha256 $DIGEST --publish --verbose
-        env:
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
-          NOTARY_TARGETS_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
-
   perl:
     name: Build Debian NGINX mainline perl Docker image
     needs: [version, core]
@@ -246,35 +217,6 @@ jobs:
           # cache-from: type=gha,scope=debian-perl
           # cache-to: type=gha,mode=min,scope=debian-perl
 
-      - name: Sign Docker Hub Manifest
-        if: ${{ github.event_name != 'pull_request' }}
-        run: |
-          set -ex
-          sudo apt update
-          sudo apt install -y notary
-          mkdir -p ~/.docker/trust/private
-          echo "$DOCKER_CONTENT_TRUST_REPOSITORY_KEY" > ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
-          chmod 0400 ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
-          docker trust key load ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key --name nginx
-          DIGEST=$(printf '${{ steps.build.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
-          SIZE=$(printf '${{ steps.build.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
-          export NOTARY_AUTH=$(printf "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" | base64 -w0)
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged perl $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.distro }}-perl $SIZE --sha256 $DIGEST --publish --verbose
-        env:
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
-          NOTARY_TARGETS_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
-
   otel:
     name: Build Debian NGINX mainline otel Docker image
     needs: [version, core]
@@ -366,32 +308,3 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           # cache-from: type=gha,scope=debian-otel
           # cache-to: type=gha,mode=min,scope=debian-otel
-
-      - name: Sign Docker Hub Manifest
-        if: ${{ github.event_name != 'pull_request' }}
-        run: |
-          set -ex
-          sudo apt update
-          sudo apt install -y notary
-          mkdir -p ~/.docker/trust/private
-          echo "$DOCKER_CONTENT_TRUST_REPOSITORY_KEY" > ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
-          chmod 0400 ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key
-          docker trust key load ~/.docker/trust/private/$DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID.key --name nginx
-          DIGEST=$(printf '${{ steps.build.outputs.metadata }}' | jq -r '."containerimage.descriptor".digest' | cut -d ':' -f2)
-          SIZE=$(printf '${{ steps.build.outputs.metadata }}' | jq -r '."containerimage.descriptor".size')
-          export NOTARY_AUTH=$(printf "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" | base64 -w0)
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}.${{ needs.version.outputs.patch }}-${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}-${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.major }}.${{ needs.version.outputs.minor }}-${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged mainline-${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged otel $SIZE --sha256 $DIGEST --publish --verbose
-          notary -d ~/.docker/trust/ -s https://notary.docker.io addhash docker.io/nginxinc/nginx-unprivileged ${{ needs.version.outputs.distro }}-otel $SIZE --sha256 $DIGEST --publish --verbose
-        env:
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_KEY_ID }}
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
-          NOTARY_TARGETS_PASSPHRASE: ${{ secrets.DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE }}
