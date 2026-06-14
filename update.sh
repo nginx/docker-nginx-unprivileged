@@ -55,7 +55,7 @@ declare -A debian=(
 )
 
 declare -A alpine=(
-    [mainline]='3.23'
+    [mainline]='3.24'
     [stable]='3.23'
 )
 
