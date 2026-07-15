@@ -8,8 +8,8 @@ FROM $IMAGE
 
 LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 
-ENV NGINX_VERSION=1.30.3
-ENV NJS_VERSION=0.9.9
+ENV NGINX_VERSION=1.30.4
+ENV NJS_VERSION=1.0.0
 ENV NJS_RELEASE=1~trixie
 ENV PKG_RELEASE=1~trixie
 ENV DYNPKG_RELEASE=1~trixie
@@ -81,7 +81,7 @@ RUN set -x \
                 && REVISION="${NGINX_VERSION}-${PKG_RELEASE}" \
                 && REVISION=${REVISION%~*} \
                 && curl -f -L -O https://github.com/nginx/pkg-oss/archive/${REVISION}.tar.gz \
-                && PKGOSSCHECKSUM="e602521342632b9cd61ff29049864eb5e233dea98918f1a4d842c4fb8304af1f916a9630e9cd00236366f713a011ed6b05e068ebcc136d3d820af0c31f932a71 *${REVISION}.tar.gz" \
+                && PKGOSSCHECKSUM="884cbfae1bfc1f8025795c4232780c71086837022321a2c6eba3654b6507e87f9446c7e88a711fdb6f7360000e25bea4b75bdcac13b32db8acd7e0e9fe1dcd3d *${REVISION}.tar.gz" \
                 && if [ "$(openssl sha512 -r ${REVISION}.tar.gz)" = "$PKGOSSCHECKSUM" ]; then \
                     echo "pkg-oss tarball checksum verification succeeded!"; \
                 else \

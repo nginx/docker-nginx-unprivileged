@@ -3,7 +3,7 @@
 #
 # PLEASE DO NOT EDIT IT DIRECTLY.
 #
-ARG IMAGE=nginxinc/nginx-unprivileged:1.31.2-alpine
+ARG IMAGE=nginxinc/nginx-unprivileged:1.31.3-alpine
 FROM $IMAGE
 
 ENV OTEL_VERSION=0.1.2
@@ -57,7 +57,7 @@ RUN set -x \
                 export HOME=${tempDir} \
                 && cd ${tempDir} \
                 && curl -f -L -O https://github.com/nginx/pkg-oss/archive/${NGINX_VERSION}-${PKG_RELEASE}.tar.gz \
-                && PKGOSSCHECKSUM=\"4bba39eed68bcc887d119ec5079e9824c0a0e4602e6443bee1df396eb9181437eae481e83d533475951e39675d6e1ff54901bdd208262c4b34e74f5c7984e82c *${NGINX_VERSION}-${PKG_RELEASE}.tar.gz\" \
+                && PKGOSSCHECKSUM=\"524b75cc72657ce77d90cd25c305aba0a19a7f8a3e5dec8e1cc585cd7985663a444c7873e9040b4576285b49ac117c1ea4bb4077dc592eca52316935e1f75adf *${NGINX_VERSION}-${PKG_RELEASE}.tar.gz\" \
                 && if [ \"\$(openssl sha512 -r ${NGINX_VERSION}-${PKG_RELEASE}.tar.gz)\" = \"\$PKGOSSCHECKSUM\" ]; then \
                     echo \"pkg-oss tarball checksum verification succeeded!\"; \
                 else \
