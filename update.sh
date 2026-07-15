@@ -12,14 +12,14 @@ declare branches=(
 # Current nginx versions
 # Remember to update pkgosschecksum when changing this.
 declare -A nginx=(
-    [mainline]='1.31.2'
-    [stable]='1.30.3'
+    [mainline]='1.31.3'
+    [stable]='1.30.4'
 )
 
 # Current njs versions
 declare -A njs=(
-    [mainline]='0.9.9'
-    [stable]='0.9.9'
+    [mainline]='1.0.0'
+    [stable]='1.0.0'
 )
 
 # Current njs patchlevel version
@@ -55,8 +55,8 @@ declare -A debian=(
 )
 
 declare -A alpine=(
-    [mainline]='3.23'
-    [stable]='3.23'
+    [mainline]='3.24'
+    [stable]='3.24'
 )
 
 # When we bump njs version in a stable release we don't move the tag in the
@@ -72,8 +72,8 @@ declare -A rev=(
 # revision/tag in the previous block
 # Used in builds for architectures not packaged by nginx.org
 declare -A pkgosschecksum=(
-    [mainline]='4bba39eed68bcc887d119ec5079e9824c0a0e4602e6443bee1df396eb9181437eae481e83d533475951e39675d6e1ff54901bdd208262c4b34e74f5c7984e82c'
-    [stable]='e602521342632b9cd61ff29049864eb5e233dea98918f1a4d842c4fb8304af1f916a9630e9cd00236366f713a011ed6b05e068ebcc136d3d820af0c31f932a71'
+    [mainline]='524b75cc72657ce77d90cd25c305aba0a19a7f8a3e5dec8e1cc585cd7985663a444c7873e9040b4576285b49ac117c1ea4bb4077dc592eca52316935e1f75adf'
+    [stable]='884cbfae1bfc1f8025795c4232780c71086837022321a2c6eba3654b6507e87f9446c7e88a711fdb6f7360000e25bea4b75bdcac13b32db8acd7e0e9fe1dcd3d'
 )
 
 get_packages() {
