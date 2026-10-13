@@ -76,10 +76,11 @@ jobs:
 
       - name: Login to Docker Hub
         if: ${{ github.event_name != 'pull_request' }}
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: 5589086a-b1e3-4901-9ab3-cddf47dba2ca
         with:
-          username: ${{ env.DOCKERHUB_USERNAME }}
-          password: ${{ env.DOCKERHUB_TOKEN }}
+          username: nginx
 
       - name: Login to GitHub Container Registry
         if: ${{ github.event_name != 'pull_request' }}
@@ -102,7 +103,7 @@ jobs:
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
           images: |
-            docker.io/nginxinc/nginx-unprivileged
+            docker.io/nginx/nginx-unprivileged
             ghcr.io/nginx/nginx-unprivileged
             public.ecr.aws/nginx/nginx-unprivileged
             quay.io/nginx/nginx-unprivileged
@@ -178,10 +179,11 @@ jobs:
 
       - name: Login to Docker Hub
         if: ${{ github.event_name != 'pull_request' }}
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: 5589086a-b1e3-4901-9ab3-cddf47dba2ca
         with:
-          username: ${{ env.DOCKERHUB_USERNAME }}
-          password: ${{ env.DOCKERHUB_TOKEN }}
+          username: nginx
 
       - name: Login to GitHub Container Registry
         if: ${{ github.event_name != 'pull_request' }}
@@ -204,7 +206,7 @@ jobs:
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
           images: |
-            docker.io/nginxinc/nginx-unprivileged
+            docker.io/nginx/nginx-unprivileged
             ghcr.io/nginx/nginx-unprivileged
             public.ecr.aws/nginx/nginx-unprivileged
             quay.io/nginx/nginx-unprivileged
@@ -280,10 +282,11 @@ jobs:
 
       - name: Login to Docker Hub
         if: ${{ github.event_name != 'pull_request' }}
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: 5589086a-b1e3-4901-9ab3-cddf47dba2ca
         with:
-          username: ${{ env.DOCKERHUB_USERNAME }}
-          password: ${{ env.DOCKERHUB_TOKEN }}
+          username: nginx
 
       - name: Login to GitHub Container Registry
         if: ${{ github.event_name != 'pull_request' }}
@@ -306,7 +309,7 @@ jobs:
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
           images: |
-            docker.io/nginxinc/nginx-unprivileged
+            docker.io/nginx/nginx-unprivileged
             ghcr.io/nginx/nginx-unprivileged
             public.ecr.aws/nginx/nginx-unprivileged
             quay.io/nginx/nginx-unprivileged
@@ -382,10 +385,11 @@ jobs:
 
       - name: Login to Docker Hub
         if: ${{ github.event_name != 'pull_request' }}
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: 5589086a-b1e3-4901-9ab3-cddf47dba2ca
         with:
-          username: ${{ env.DOCKERHUB_USERNAME }}
-          password: ${{ env.DOCKERHUB_TOKEN }}
+          username: nginx
 
       - name: Login to GitHub Container Registry
         if: ${{ github.event_name != 'pull_request' }}
@@ -408,7 +412,7 @@ jobs:
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
           images: |
-            docker.io/nginxinc/nginx-unprivileged
+            docker.io/nginx/nginx-unprivileged
             ghcr.io/nginx/nginx-unprivileged
             public.ecr.aws/nginx/nginx-unprivileged
             quay.io/nginx/nginx-unprivileged
