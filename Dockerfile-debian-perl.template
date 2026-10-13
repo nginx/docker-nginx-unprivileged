@@ -1,4 +1,4 @@
-ARG IMAGE=nginxinc/nginx-unprivileged:%%NGINX_VERSION%%
+ARG IMAGE=nginx/nginx-unprivileged:%%NGINX_VERSION%%
 FROM $IMAGE
 
 ARG UID=101
