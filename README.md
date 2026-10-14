@@ -23,7 +23,8 @@ Check out the [docs](https://hub.docker.com/_/nginx) for the upstream Docker NGI
 You can find pre-built images in each of the following registries:
 
 - Amazon ECR - <https://gallery.ecr.aws/nginx/nginx-unprivileged>
-- Docker Hub - <https://hub.docker.com/r/nginxinc/nginx-unprivileged>
+- Docker Hub - <https://hub.docker.com/r/nginx/nginx-unprivileged>
+  - **Note**: For releases prior to NGINX 1.31.7 (mainline branch) and 1.30.6 (stable branch), use the old registry link <https://hub.docker.com/r/nginxinc/nginx-unprivileged>
 - GitHub Container Registry - <https://github.com/nginx/docker-nginx-unprivileged/pkgs/container/nginx-unprivileged>
   - **Note**: For releases prior to NGINX 1.27.4 (mainline branch) and 1.26.3 (stable branch), use the old registry link <https://github.com/orgs/nginxinc/packages/container/package/nginx-unprivileged>
 - Quay - <https://quay.io/repository/nginx/nginx-unprivileged>

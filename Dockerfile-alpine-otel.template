@@ -1,4 +1,4 @@
-ARG IMAGE=nginxinc/nginx-unprivileged:%%NGINX_VERSION%%-alpine
+ARG IMAGE=nginx/nginx-unprivileged:%%NGINX_VERSION%%-alpine
 FROM $IMAGE
 
 ENV OTEL_VERSION=%%OTEL_VERSION%%
