@@ -79,6 +79,7 @@ jobs:
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         env:
           DOCKERHUB_OIDC_CONNECTIONID: 5589086a-b1e3-4901-9ab3-cddf47dba2ca
+          DOCKERHUB_OIDC_EXPIREIN: 21600
         with:
           username: nginx
 
@@ -182,6 +183,7 @@ jobs:
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         env:
           DOCKERHUB_OIDC_CONNECTIONID: 5589086a-b1e3-4901-9ab3-cddf47dba2ca
+          DOCKERHUB_OIDC_EXPIREIN: 21600
         with:
           username: nginx
 
@@ -285,6 +287,7 @@ jobs:
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         env:
           DOCKERHUB_OIDC_CONNECTIONID: 5589086a-b1e3-4901-9ab3-cddf47dba2ca
+          DOCKERHUB_OIDC_EXPIREIN: 21600
         with:
           username: nginx
 
@@ -388,6 +391,7 @@ jobs:
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         env:
           DOCKERHUB_OIDC_CONNECTIONID: 5589086a-b1e3-4901-9ab3-cddf47dba2ca
+          DOCKERHUB_OIDC_EXPIREIN: 21600
         with:
           username: nginx
 
