@@ -57,8 +57,8 @@ jobs:
           client-id: ${{ secrets.SYSENG_CLIENT_ID }}
           tenant-id: ${{ secrets.SYSENG_TENANT_ID }}
           vault-name: ${{ secrets.SYSENG_VAULT_NAME }}
-          secret-names: "github-docker-nginx-unprivileged-public-ecr-aws-region, github-docker-nginx-unprivileged-public-ecr-aws-role-rw, docker-username, docker-github-syseng-rw-token, quay-unprivileged-username, quay-unprivileged-token"
-          env-names: "AWS_REGION, AWS_ROLE_ECR_PUBLIC_RW, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, QUAY_USERNAME, QUAY_TOKEN"
+          secret-names: "github-docker-nginx-unprivileged-public-ecr-aws-region, github-docker-nginx-unprivileged-public-ecr-aws-role-rw, quay-unprivileged-username, quay-unprivileged-token"
+          env-names: "AWS_REGION, AWS_ROLE_ECR_PUBLIC_RW, QUAY_USERNAME, QUAY_TOKEN"
 
       - name: Configure AWS credentials
         if: ${{ github.event_name != 'pull_request' }}
@@ -161,8 +161,8 @@ jobs:
           client-id: ${{ secrets.SYSENG_CLIENT_ID }}
           tenant-id: ${{ secrets.SYSENG_TENANT_ID }}
           vault-name: ${{ secrets.SYSENG_VAULT_NAME }}
-          secret-names: "github-docker-nginx-unprivileged-public-ecr-aws-region, github-docker-nginx-unprivileged-public-ecr-aws-role-rw, docker-username, docker-github-syseng-rw-token, quay-unprivileged-username, quay-unprivileged-token"
-          env-names: "AWS_REGION, AWS_ROLE_ECR_PUBLIC_RW, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, QUAY_USERNAME, QUAY_TOKEN"
+          secret-names: "github-docker-nginx-unprivileged-public-ecr-aws-region, github-docker-nginx-unprivileged-public-ecr-aws-role-rw, quay-unprivileged-username, quay-unprivileged-token"
+          env-names: "AWS_REGION, AWS_ROLE_ECR_PUBLIC_RW, QUAY_USERNAME, QUAY_TOKEN"
 
       - name: Configure AWS credentials
         if: ${{ github.event_name != 'pull_request' }}
@@ -265,8 +265,8 @@ jobs:
           client-id: ${{ secrets.SYSENG_CLIENT_ID }}
           tenant-id: ${{ secrets.SYSENG_TENANT_ID }}
           vault-name: ${{ secrets.SYSENG_VAULT_NAME }}
-          secret-names: "github-docker-nginx-unprivileged-public-ecr-aws-region, github-docker-nginx-unprivileged-public-ecr-aws-role-rw, docker-username, docker-github-syseng-rw-token, quay-unprivileged-username, quay-unprivileged-token"
-          env-names: "AWS_REGION, AWS_ROLE_ECR_PUBLIC_RW, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, QUAY_USERNAME, QUAY_TOKEN"
+          secret-names: "github-docker-nginx-unprivileged-public-ecr-aws-region, github-docker-nginx-unprivileged-public-ecr-aws-role-rw, quay-unprivileged-username, quay-unprivileged-token"
+          env-names: "AWS_REGION, AWS_ROLE_ECR_PUBLIC_RW, QUAY_USERNAME, QUAY_TOKEN"
 
       - name: Configure AWS credentials
         if: ${{ github.event_name != 'pull_request' }}
@@ -369,8 +369,8 @@ jobs:
           client-id: ${{ secrets.SYSENG_CLIENT_ID }}
           tenant-id: ${{ secrets.SYSENG_TENANT_ID }}
           vault-name: ${{ secrets.SYSENG_VAULT_NAME }}
-          secret-names: "github-docker-nginx-unprivileged-public-ecr-aws-region, github-docker-nginx-unprivileged-public-ecr-aws-role-rw, docker-username, docker-github-syseng-rw-token, quay-unprivileged-username, quay-unprivileged-token"
-          env-names: "AWS_REGION, AWS_ROLE_ECR_PUBLIC_RW, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, QUAY_USERNAME, QUAY_TOKEN"
+          secret-names: "github-docker-nginx-unprivileged-public-ecr-aws-region, github-docker-nginx-unprivileged-public-ecr-aws-role-rw, quay-unprivileged-username, quay-unprivileged-token"
+          env-names: "AWS_REGION, AWS_ROLE_ECR_PUBLIC_RW, QUAY_USERNAME, QUAY_TOKEN"
 
       - name: Configure AWS credentials
         if: ${{ github.event_name != 'pull_request' }}
